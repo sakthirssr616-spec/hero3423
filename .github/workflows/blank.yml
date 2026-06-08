@@ -1,0 +1,39 @@
+name: Build Comskip
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-ffmpeg
+            mingw-w64-x86_64-argtable
+            mingw-w64-x86_64-libconfig
+            make autoconf automake libtool git
+
+      - name: Clone Comskip
+        shell: msys2 {0}
+        run: git clone https://github.com/erikkaashoek/Comskip
+
+      - name: Build
+        shell: msys2 {0}
+        run: |
+          cd Comskip
+          ./autogen.sh
+          ./configure
+          make
+
+      - name: Upload Binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: comskip-windows-x64
+          path: Comskip/comskip.exe
